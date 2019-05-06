@@ -26,8 +26,8 @@ namespace IngameScript
             public const int freeTicks = 20;
             public const double maxRuntime = 0.3f;
             public const int tickSampleRate = 30;
+            public const double throttlePoint = 0.9f;
             public const int sleepTimer = 200;
-            private const int ticksPerRun = 300;
             private const float sietaTime = 8;
             public const string headerTitle = "Diagnostics";
 
@@ -36,6 +36,7 @@ namespace IngameScript
             public readonly string tag;
 
             private double peakLrt = -1f;
+            private double averageLrt = 0f;
             private int lastSpike = -1;
 
             private int spikeCount = 0;
@@ -43,8 +44,6 @@ namespace IngameScript
             private float spikeAverage = 0;
 
             private string peakLrtString = "";
-
-            private int nextPause = 0;
             #endregion
 
             #region properties
@@ -62,20 +61,19 @@ namespace IngameScript
             public void Start()
             {
                 output.SetHeader("Diagnostics");
-                nextPause = ticksPerRun;
             }
 
             public void Update()
             {
-                //Susspend after x ticks
-                if (program.Tick > nextPause) {
-                    nextPause += ticksPerRun;
-                    program.Sleep(sietaTime);
-                    return;
-                }
-
-
                 double lrt = program.Runtime.LastRunTimeMs;
+
+                averageLrt = averageLrt * 0.99 + lrt * 0.01;
+
+                //Throttle if average goes over
+                if (averageLrt > throttlePoint) {
+                    program.Sleep(3);
+                    output.Print("Throttling...");
+                }
 
                 if (lrt > peakLrt) {
                     peakLrt = lrt;
@@ -91,13 +89,13 @@ namespace IngameScript
                     spikeCount++;
                     spikeSum += timeSinceLast;
                     spikeAverage = spikeSum / spikeCount;
-                    output.SetHeader(headerTitle + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
                     output.PrintWarning("Max runtime was peaked: " + lrt + "ms (" + timeSinceLast + " ticks since last spike)");
                     output.Print("Current instruction count: " + program.Runtime.CurrentInstructionCount);
 
-                    program.Sleep(4);
+                    //program.Sleep(4, true);
                 }
-                
+
+                output.SetHeader(headerTitle + "\n" + "Average Runtime: " + averageLrt + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
                 output.Update();
             }
             #endregion

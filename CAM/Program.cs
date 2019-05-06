@@ -41,6 +41,7 @@ namespace IngameScript
         private IMyTimerBlock timer;
 
         private UpdateFrequency frequencyAtPause;
+        private int sleepTimeLeft = 0;
         
         
         #endregion
@@ -72,11 +73,7 @@ namespace IngameScript
             InitRoutines();
 
             //Set how often this runs
-            SetUpdateSpeed(UpdateFrequency.Update1);
-
-            //Get runtime limmitations
-            output.Print("Max chain depth: " + Runtime.MaxCallChainDepth);
-            output.Print("Max instruction count: " + Runtime.MaxInstructionCount);
+            Runtime.UpdateFrequency = UpdateFrequency.Update1;
         }
 
         /// <summary>
@@ -95,6 +92,11 @@ namespace IngameScript
 
             //Run diagnostics every loop
             diagnostics.Update();
+
+            if (sleepTimeLeft > 0) {
+                sleepTimeLeft--;
+                return;
+            }
 
             //Loop index
             if (routineIndex >= routineCount) {
@@ -115,36 +117,19 @@ namespace IngameScript
             tick++;
         }
 
-        public void Sleep(float seconds)
+        public void Sleep(float seconds, bool fake = false)
         {
-            if (timer != null) {
+            if (timer == null)
+                fake = true;
+
+            if (fake) {
+                sleepTimeLeft = (int)(seconds * 100);
+            } else {
+                sleepTimeLeft = 0;
                 timer.SetValueFloat("TriggerDelay", seconds);
                 timer.StartCountdown();
+                Pause();
             }
-                
-
-            Pause();
-        }
-
-        public void SetUpdateSpeed(UpdateFrequency frequency)
-        {
-            switch (frequency) {
-                case UpdateFrequency.Update10:
-                    output.Print("Setting runspeed to medium");
-                    break;
-                case UpdateFrequency.Update100:
-                    output.Print("Setting runspeed to sloth");
-                    break;
-                case UpdateFrequency.None:
-                    output.Print("Pausing script");
-                    break;
-                case UpdateFrequency.Update1:
-                default:
-                    output.Print("Setting runspeed to full");
-                    break;
-            }
-
-            Runtime.UpdateFrequency = frequency;
         }
 
         public void Pause()
