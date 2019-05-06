@@ -23,12 +23,15 @@ namespace IngameScript
         public class StressTest : IRoutine
         {
             #region Variables
+            public const int forloopCount = 6;
+
             public readonly Program program;
+            public readonly Output output;
             public readonly string tag;
             #endregion
 
             #region properties
-            public string Name { get { return "Stress Test"; } }
+            public string Name { get { return "Stress Test " + tag; } }
             #endregion
 
             #region Public Methods
@@ -36,17 +39,27 @@ namespace IngameScript
             {
                 this.program = program;
                 this.tag = tag;
+                this.output = new Output(program, tag, false);
             }
 
 
             public void Start()
             {
-
+                output.SetHeader(Name);
             }
 
             public void Update()
             {
+                string text = forloopCount.ToString() + " g";
 
+                for (int i = 0; i < forloopCount; i++) {
+                    text += "o";
+                }
+
+                text += "n";
+
+                output.Print(text, true);
+                output.Update();
             }
             #endregion
 

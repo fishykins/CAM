@@ -62,13 +62,22 @@ namespace IngameScript
             /// Adds text to display
             /// </summary>
             /// <param name="text"></param>
-            public void Print(string text)
+            public void Print(string text, bool printMetaData = false)
             {
                 lastInteraction = program.Tick;
+
+                if (printMetaData)
+                    text = "[" + program.Tick + "]:" + text;
+
                 messages.Insert(0, text);
 
                 if (autoUpdate)
                     Update();
+            }
+
+            public void PrintWarning(string text)
+            {
+                Print("WARNING [" + program.Tick + "]:" + text);
             }
 
             /// <summary>

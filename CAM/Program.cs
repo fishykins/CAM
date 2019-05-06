@@ -21,15 +21,23 @@ namespace IngameScript
     partial class Program : MyGridProgram
     {
         #region Variables
+        //Settings
+        private const string programTag = "[M]";
+        private const string diagnosticTag = "[D]";
+        private const string stressTestTag = "[ST]";
+
+        //Variables
         private int routineCount;
         private int tick = 0;
         private int cycle = 0;
         private int routineIndex = 0;
+        private int sleepCount = 0;
 
         private List<IRoutine> routines = new List<IRoutine>();
         private IRoutine diagnostics;
         private GridAnalyser gridAnalyser;
         private Output output;
+        private IRoutine currentRoutine;
         #endregion
 
         #region Properties
@@ -47,14 +55,16 @@ namespace IngameScript
         public Program()
         {
             //Set how often this runs
-            Runtime.UpdateFrequency = UpdateFrequency.Update10;
+            Runtime.UpdateFrequency = UpdateFrequency.Update1;
 
             //Compile core variables
-            output = new Output(this, "[M]");
-            diagnostics = new Diagnostics(this, "[D]");
+            gridAnalyser = new GridAnalyser(this);
+            output = new Output(this, programTag);
+            diagnostics = new Diagnostics(this, diagnosticTag);
+
 
             //Add routines here
-            routines.Add(new StressTest(this, "[ST]"));
+            routines.Add(new StressTest(this, stressTestTag));
 
             InitRoutines();
         }
@@ -66,7 +76,10 @@ namespace IngameScript
         /// <param name="updateSource"></param>
         public void Main(string argument, UpdateType updateSource)
         {
-            SetDisplayHeader();
+            if (sleepCount > 0) {
+                sleepCount--;
+                return;
+            }
 
             //Run diagnostics every loop
             diagnostics.Update();
@@ -77,13 +90,22 @@ namespace IngameScript
                 routineIndex = 0;
             }
 
+            currentRoutine = routines[routineIndex];
+
+            SetDisplayHeader();
+            
             //Run a coroutine
-            routines[routineIndex].Update();
+            currentRoutine.Update();
 
             //Updates
             output.Update();
             routineIndex++;
             tick++;
+        }
+
+        public void Sleep(int ticks)
+        {
+            sleepCount = ticks;
         }
         #endregion
 
@@ -105,10 +127,11 @@ namespace IngameScript
         /// </summary>
         private void SetDisplayHeader()
         {
-            output.SetHeader("Main Thread\n" +
-                "Cycle " + cycle + "\n" +
-                "Routine '" + routines[routineIndex].Name + "'\n"
-                );
+            if (output != null)
+                output.SetHeader("Main Thread\n" +
+                    "Cycle " + cycle + "\n" +
+                    "Routine '" + currentRoutine.Name + "'"
+                    );
         }
         #endregion
     }

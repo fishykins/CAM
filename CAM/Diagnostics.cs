@@ -26,14 +26,25 @@ namespace IngameScript
             public const int freeTicks = 20;
             public const double maxRuntime = 0.3f;
             public const int tickSampleRate = 30;
+            public const int sleepTimer = 100;
+            public const string headerTitle = "Diagnostics";
 
             public readonly Program program;
             public readonly Output output;
             public readonly string tag;
+
+            private double peakLrt = -1f;
+            private int lastSpike = -1;
+
+            private int spikeCount = 0;
+            private int spikeSum = 0;
+            private float spikeAverage = 0;
+
+            private string peakLrtString = "";
             #endregion
 
             #region properties
-            public string Name { get { return "Diagnostics"; } }
+            public string Name { get { return headerTitle; } }
             #endregion
 
             #region Public Methods
@@ -53,7 +64,27 @@ namespace IngameScript
             {
                 double lrt = program.Runtime.LastRunTimeMs;
 
-                output.Print(program.Tick + ": " + lrt + "ms");
+                if (lrt > peakLrt) {
+                    peakLrt = lrt;
+                    
+                    peakLrtString = "Peak LRT: " + peakLrt + "ms";
+                }
+
+                if (lrt < maxRuntime) {
+                    output.Print(lrt + "ms", true);
+                } else {
+                    int timeSinceLast = program.Tick - lastSpike;
+                    lastSpike = program.Tick;
+                    spikeCount++;
+                    spikeSum += timeSinceLast;
+                    spikeAverage = spikeSum / spikeCount;
+                    output.SetHeader(headerTitle + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
+                    program.output.PrintWarning("Max runtime was peaked: " + lrt + "ms (" + timeSinceLast + " ticks since last spike)");
+
+                    int timer = (int)((lrt/ maxRuntime) * sleepTimer);
+                    program.Sleep(sleepTimer);
+                }
+                
                 output.Update();
             }
             #endregion
