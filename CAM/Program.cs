@@ -25,19 +25,24 @@ namespace IngameScript
         private const string programTag = "[M]";
         private const string diagnosticTag = "[D]";
         private const string stressTestTag = "[ST]";
-
+        
         //Variables
         private int routineCount;
         private int tick = 0;
         private int cycle = 0;
         private int routineIndex = 0;
-        private int sleepCount = 0;
 
+        private ManualProgram manualProgram;
         private List<IRoutine> routines = new List<IRoutine>();
         private IRoutine diagnostics;
         private GridAnalyser gridAnalyser;
         private Output output;
         private IRoutine currentRoutine;
+        private IMyTimerBlock timer;
+
+        private UpdateFrequency frequencyAtPause;
+        
+        
         #endregion
 
         #region Properties
@@ -54,19 +59,24 @@ namespace IngameScript
         /// </summary>
         public Program()
         {
-            //Set how often this runs
-            Runtime.UpdateFrequency = UpdateFrequency.Update1;
-
             //Compile core variables
+            manualProgram = new ManualProgram(this);
             gridAnalyser = new GridAnalyser(this);
             output = new Output(this, programTag);
+            timer = gridAnalyser.GetTimer(programTag);
             diagnostics = new Diagnostics(this, diagnosticTag);
-
-
+            diagnostics.Start();
+            
             //Add routines here
             routines.Add(new StressTest(this, stressTestTag));
-
             InitRoutines();
+
+            //Set how often this runs
+            SetUpdateSpeed(UpdateFrequency.Update1);
+
+            //Get runtime limmitations
+            output.Print("Max chain depth: " + Runtime.MaxCallChainDepth);
+            output.Print("Max instruction count: " + Runtime.MaxInstructionCount);
         }
 
         /// <summary>
@@ -76,8 +86,10 @@ namespace IngameScript
         /// <param name="updateSource"></param>
         public void Main(string argument, UpdateType updateSource)
         {
-            if (sleepCount > 0) {
-                sleepCount--;
+            //Catch manual triggers and exclude from cycles
+            if (updateSource == UpdateType.Trigger) {
+                manualProgram.Trigger(argument, output);
+                output.Update();
                 return;
             }
 
@@ -103,9 +115,50 @@ namespace IngameScript
             tick++;
         }
 
-        public void Sleep(int ticks)
+        public void Sleep(float seconds)
         {
-            sleepCount = ticks;
+            if (timer != null) {
+                timer.SetValueFloat("TriggerDelay", seconds);
+                timer.StartCountdown();
+            }
+                
+
+            Pause();
+        }
+
+        public void SetUpdateSpeed(UpdateFrequency frequency)
+        {
+            switch (frequency) {
+                case UpdateFrequency.Update10:
+                    output.Print("Setting runspeed to medium");
+                    break;
+                case UpdateFrequency.Update100:
+                    output.Print("Setting runspeed to sloth");
+                    break;
+                case UpdateFrequency.None:
+                    output.Print("Pausing script");
+                    break;
+                case UpdateFrequency.Update1:
+                default:
+                    output.Print("Setting runspeed to full");
+                    break;
+            }
+
+            Runtime.UpdateFrequency = frequency;
+        }
+
+        public void Pause()
+        {
+            if (Runtime.UpdateFrequency != UpdateFrequency.None) {
+                    frequencyAtPause = Runtime.UpdateFrequency;
+            }
+
+            Runtime.UpdateFrequency = UpdateFrequency.None;
+        }
+
+        public void Continue()
+        {
+            Runtime.UpdateFrequency = frequencyAtPause;
         }
         #endregion
 

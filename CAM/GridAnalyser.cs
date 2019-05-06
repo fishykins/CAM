@@ -54,6 +54,18 @@ namespace IngameScript
                 return surfaces;
             }
 
+            public IMyTimerBlock GetTimer(string tag)
+            {
+                List<IMyTimerBlock> tempList = new List<IMyTimerBlock>();
+                program.GridTerminalSystem.GetBlocksOfType<IMyTimerBlock>(tempList, block => block.CustomName.Contains(tag));
+
+                if (tempList.Count > 0) {
+                    return tempList[0];
+                }
+
+                return null;
+            }
+
             #endregion
 
             #region Private Methods

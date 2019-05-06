@@ -98,6 +98,7 @@
   <ItemGroup>
     <Compile Include="Diagnostics.cs" />
     <Compile Include="GridAnalyser.cs" />
+    <Compile Include="ManualProgram.cs" />
     <Compile Include="MDK\Bootstrapper.cs" />
     <AdditionalFiles Include="MDK\MDK.options">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

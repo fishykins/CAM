@@ -26,7 +26,9 @@ namespace IngameScript
             public const int freeTicks = 20;
             public const double maxRuntime = 0.3f;
             public const int tickSampleRate = 30;
-            public const int sleepTimer = 100;
+            public const int sleepTimer = 200;
+            private const int ticksPerRun = 300;
+            private const float sietaTime = 8;
             public const string headerTitle = "Diagnostics";
 
             public readonly Program program;
@@ -41,6 +43,8 @@ namespace IngameScript
             private float spikeAverage = 0;
 
             private string peakLrtString = "";
+
+            private int nextPause = 0;
             #endregion
 
             #region properties
@@ -58,10 +62,19 @@ namespace IngameScript
             public void Start()
             {
                 output.SetHeader("Diagnostics");
+                nextPause = ticksPerRun;
             }
 
             public void Update()
             {
+                //Susspend after x ticks
+                if (program.Tick > nextPause) {
+                    nextPause += ticksPerRun;
+                    program.Sleep(sietaTime);
+                    return;
+                }
+
+
                 double lrt = program.Runtime.LastRunTimeMs;
 
                 if (lrt > peakLrt) {
@@ -70,7 +83,7 @@ namespace IngameScript
                     peakLrtString = "Peak LRT: " + peakLrt + "ms";
                 }
 
-                if (lrt < maxRuntime) {
+                if (lrt < maxRuntime || program.Tick < freeTicks) {
                     output.Print(lrt + "ms", true);
                 } else {
                     int timeSinceLast = program.Tick - lastSpike;
@@ -79,10 +92,10 @@ namespace IngameScript
                     spikeSum += timeSinceLast;
                     spikeAverage = spikeSum / spikeCount;
                     output.SetHeader(headerTitle + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
-                    program.output.PrintWarning("Max runtime was peaked: " + lrt + "ms (" + timeSinceLast + " ticks since last spike)");
+                    output.PrintWarning("Max runtime was peaked: " + lrt + "ms (" + timeSinceLast + " ticks since last spike)");
+                    output.Print("Current instruction count: " + program.Runtime.CurrentInstructionCount);
 
-                    int timer = (int)((lrt/ maxRuntime) * sleepTimer);
-                    program.Sleep(sleepTimer);
+                    program.Sleep(4);
                 }
                 
                 output.Update();
