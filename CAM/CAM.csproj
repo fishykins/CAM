@@ -96,14 +96,18 @@
     <Analyzer Include="c:\users\fishy\appdata\local\microsoft\visualstudio\15.0_9486db90\extensions\icrbray2.4zn\Analyzers\MDKAnalyzer.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Container.cs" />
+    <Compile Include="ContainerGroup.cs" />
     <Compile Include="Diagnostics.cs" />
     <Compile Include="GridAnalyser.cs" />
+    <Compile Include="Logistics.cs" />
     <Compile Include="ManualProgram.cs" />
     <Compile Include="MDK\Bootstrapper.cs" />
     <AdditionalFiles Include="MDK\MDK.options">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AdditionalFiles>
     <Compile Include="Output.cs" />
+    <Compile Include="Production.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Readme.cs" />
     <AdditionalFiles Include="thumb.png" />

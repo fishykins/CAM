@@ -20,13 +20,16 @@ namespace IngameScript
 {
     partial class Program
     {
+        /// <summary>
+        /// Diagnostics monitors the performance of the script, and will step in to prevent egg on face if need be
+        /// </summary>
         public class Diagnostics : IRoutine
         {
             #region Variables
             public const int freeTicks = 20;
             public const double maxRuntime = 0.3f;
             public const int tickSampleRate = 30;
-            public const double throttlePoint = 0.9f;
+            public const double throttlePoint = 0.3f;
             public const int sleepTimer = 200;
             private const float sietaTime = 8;
             public const string headerTitle = "Diagnostics";
@@ -65,34 +68,32 @@ namespace IngameScript
 
             public void Update()
             {
+                if (program.Tick < freeTicks) return;
+
                 double lrt = program.Runtime.LastRunTimeMs;
 
                 averageLrt = averageLrt * 0.99 + lrt * 0.01;
 
                 //Throttle if average goes over
                 if (averageLrt > throttlePoint) {
-                    program.Sleep(3);
-                    output.Print("Throttling...");
-                }
 
-                if (lrt > peakLrt) {
-                    peakLrt = lrt;
-                    
-                    peakLrtString = "Peak LRT: " + peakLrt + "ms";
-                }
-
-                if (lrt < maxRuntime || program.Tick < freeTicks) {
-                    output.Print(lrt + "ms", true);
-                } else {
                     int timeSinceLast = program.Tick - lastSpike;
                     lastSpike = program.Tick;
                     spikeCount++;
                     spikeSum += timeSinceLast;
                     spikeAverage = spikeSum / spikeCount;
-                    output.PrintWarning("Max runtime was peaked: " + lrt + "ms (" + timeSinceLast + " ticks since last spike)");
-                    output.Print("Current instruction count: " + program.Runtime.CurrentInstructionCount);
 
-                    //program.Sleep(4, true);
+                    output.PrintWarning("Max average runtime was peaked: " + averageLrt + "ms\n       --> " + timeSinceLast + " ticks since last spike");
+                    program.Pause();
+                    averageLrt = 0f;
+                } else {
+                    output.Print(lrt + "ms", true);
+                }
+
+                //Track big spikes
+                if (lrt > peakLrt) {
+                    peakLrt = lrt;
+                    peakLrtString = "Peak LRT: " + peakLrt + "ms";
                 }
 
                 output.SetHeader(headerTitle + "\n" + "Average Runtime: " + averageLrt + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);

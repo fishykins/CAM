@@ -50,10 +50,6 @@ namespace IngameScript
 
             public void Update()
             {
-
-                return;
-
-                /*
                 string text = forloopCount.ToString() + " g";
 
                 for (int i = 0; i < forloopCount; i++) {
@@ -63,7 +59,7 @@ namespace IngameScript
                 text += "n";
 
                 output.Print(text, true);
-                output.Update();*/
+                output.Update();
             }
             #endregion
 

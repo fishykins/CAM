@@ -25,6 +25,7 @@ namespace IngameScript
         private const string programTag = "[M]";
         private const string diagnosticTag = "[D]";
         private const string stressTestTag = "[ST]";
+        private const string logisticsTag = "[A]";
         
         //Variables
         private int routineCount;
@@ -70,6 +71,7 @@ namespace IngameScript
             
             //Add routines here
             routines.Add(new StressTest(this, stressTestTag));
+            routines.Add(new Logistics(this, logisticsTag));
             InitRoutines();
 
             //Set how often this runs
@@ -93,8 +95,10 @@ namespace IngameScript
             //Run diagnostics every loop
             diagnostics.Update();
 
+            //Prevent routines running if sleeping
             if (sleepTimeLeft > 0) {
                 sleepTimeLeft--;
+                EndUpdate();
                 return;
             }
 
@@ -111,10 +115,7 @@ namespace IngameScript
             //Run a coroutine
             currentRoutine.Update();
 
-            //Updates
-            output.Update();
-            routineIndex++;
-            tick++;
+            EndUpdate();
         }
 
         public void Sleep(float seconds, bool fake = false)
@@ -123,7 +124,7 @@ namespace IngameScript
                 fake = true;
 
             if (fake) {
-                sleepTimeLeft = (int)(seconds * 100);
+                sleepTimeLeft = (int)(seconds * 60);
             } else {
                 sleepTimeLeft = 0;
                 timer.SetValueFloat("TriggerDelay", seconds);
@@ -170,6 +171,19 @@ namespace IngameScript
                     "Cycle " + cycle + "\n" +
                     "Routine '" + currentRoutine.Name + "'"
                     );
+        }
+
+        /// <summary>
+        /// Runs at end of loop
+        /// </summary>
+        private void EndUpdate()
+        {
+            output.Update();
+            routineIndex++;
+            tick++;
+
+            if (tick >= int.MaxValue - 10) tick = 0;
+            if (cycle >= int.MaxValue - 10) cycle = 0;
         }
         #endregion
     }
