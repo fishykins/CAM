@@ -50,7 +50,7 @@ namespace IngameScript
             {
                 this.program = program;
                 this.tag = tag;
-                this.screens = program.Analyser.FindScreens(tag);
+                this.screens = program.Analyser.FindScreens(tag, "main");
                 this.autoUpdate = autoUpdate;
 
                 if (screens == null) {

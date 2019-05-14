@@ -41,14 +41,15 @@ namespace IngameScript
             /// </summary>
             /// <param name="tag"></param>
             /// <returns></returns>
-            public List<IMyTextSurface> FindScreens(string tag)
+            public List<IMyTextSurface> FindScreens(string tag, string subtag = "")
             {
                 List<IMyTextPanel> tempList = new List<IMyTextPanel>();
                 program.GridTerminalSystem.GetBlocksOfType<IMyTextPanel>(tempList, screen => screen.CustomName.Contains(tag));
 
                 List<IMyTextSurface> surfaces = new List<IMyTextSurface>();
                 foreach (var item in tempList) {
-                    surfaces.Add(item as IMyTextSurface);
+                    if (subtag == "" || item.CustomName.ToLower().Contains(subtag.ToLower()))
+                        surfaces.Add(item as IMyTextSurface);
                 }
 
                 return surfaces;

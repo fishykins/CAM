@@ -26,6 +26,7 @@ namespace IngameScript
         private const string diagnosticTag = "[D]";
         private const string stressTestTag = "[ST]";
         private const string logisticsTag = "[A]";
+        private const string hangarTag = "[H]";
         
         //Variables
         private int routineCount;
@@ -35,6 +36,7 @@ namespace IngameScript
 
         private ManualProgram manualProgram;
         private List<IRoutine> routines = new List<IRoutine>();
+        public Dictionary<string, IRoutine> tagDictionary = new Dictionary<string, IRoutine>();
         private IRoutine diagnostics;
         private GridAnalyser gridAnalyser;
         private Output output;
@@ -70,8 +72,9 @@ namespace IngameScript
             diagnostics.Start();
             
             //Add routines here
-            routines.Add(new StressTest(this, stressTestTag));
             routines.Add(new Logistics(this, logisticsTag));
+            routines.Add(new Hangar(this, hangarTag));
+
             InitRoutines();
 
             //Set how often this runs
@@ -156,6 +159,8 @@ namespace IngameScript
         {
             foreach (var routine in routines) {
                 routine.Start();
+                tagDictionary.Add(routine.Tag, routine);
+                output.Print("Monitoring tag '" + routine.Tag + "'");
             }
 
             routineCount = routines.Count;

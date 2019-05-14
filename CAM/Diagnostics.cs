@@ -27,9 +27,8 @@ namespace IngameScript
         {
             #region Variables
             public const int freeTicks = 20;
-            public const double maxRuntime = 0.3f;
+            public const double maxRuntime = 0.9f;
             public const int tickSampleRate = 30;
-            public const double throttlePoint = 0.3f;
             public const int sleepTimer = 200;
             private const float sietaTime = 8;
             public const string headerTitle = "Diagnostics";
@@ -51,6 +50,7 @@ namespace IngameScript
 
             #region properties
             public string Name { get { return headerTitle; } }
+            public string Tag { get { return tag; } }
             #endregion
 
             #region Public Methods
@@ -75,7 +75,7 @@ namespace IngameScript
                 averageLrt = averageLrt * 0.99 + lrt * 0.01;
 
                 //Throttle if average goes over
-                if (averageLrt > throttlePoint) {
+                if (averageLrt > maxRuntime) {
 
                     int timeSinceLast = program.Tick - lastSpike;
                     lastSpike = program.Tick;
@@ -98,6 +98,11 @@ namespace IngameScript
 
                 output.SetHeader(headerTitle + "\n" + "Average Runtime: " + averageLrt + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
                 output.Update();
+            }
+
+            public void Trigger(string argument)
+            {
+
             }
             #endregion
 

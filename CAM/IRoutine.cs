@@ -23,9 +23,11 @@ namespace IngameScript
         public interface IRoutine
         {
             string Name { get; }
+            string Tag { get; }
 
             void Start();
             void Update();
+            void Trigger(string argument);
         }
     }
 }

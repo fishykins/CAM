@@ -123,12 +123,15 @@ namespace IngameScript
 
                 logistics.output.Print("Sorting " + itemsToSort.Count + " items in " + name, true);
 
+                int moved = 0;
+
                 for (int i = 0; i < itemsToSort.Count; i++) {
 
-                    int index = itemsToSort[i];
+                    int index = itemsToSort[i] - moved;
                     MyInventoryItem item = items[index];
 
                     if (inventory.TransferItemTo(inventory, index, null, true)) {
+                        moved++;
                         logistics.output.Print("--- '" + item.Type.SubtypeId + "' [" + index + "] has been stacked");
                     } else {
                         logistics.output.Print("!!! '" + item.Type.SubtypeId + "' [" + index + "] failed to move");
@@ -140,9 +143,11 @@ namespace IngameScript
             {
                 if (itemsToFilter.Count == 0 || !canFilter) return;
 
+                int moved = 0;
+
                 for (int i = 0; i < itemsToFilter.Count; i++) {
 
-                    int index = itemsToFilter[i];
+                    int index = itemsToFilter[i] - moved;
                     MyInventoryItem item = items[index];
 
                     if (!whiteList.Contains(item.Type.TypeId)) {
@@ -153,6 +158,7 @@ namespace IngameScript
                             if (group.bins.Count > 0) {
                                 Container targetBin = group.bins[0];
                                 if (inventory.TransferItemTo(targetBin.inventory, index, null, true)) {
+                                    moved++;
                                     logistics.output.Print("--- '" + item.Type.SubtypeId + "' [" + index + "] moved to " + targetBin.name, true);
                                 } else {
                                     logistics.output.Print("!!! '" + item.Type.SubtypeId + "' [" + index + "] failed to move to " + targetBin.name);

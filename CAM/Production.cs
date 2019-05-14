@@ -43,9 +43,10 @@ namespace IngameScript
 
             public bool Update()
             {
-                input.canFilter = block.IsQueueEmpty;
+                input.canFilter = (block.IsQueueEmpty && !block.IsWorking);
                 return true;
             }
+
         }
     }
 }

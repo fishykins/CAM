@@ -43,7 +43,7 @@ namespace IngameScript
                     case "Continue":
                         program.Continue();
                         break;
-                    case "1":
+                    case "togglePause":
                         if (program.Runtime.UpdateFrequency != UpdateFrequency.None) {
                             program.Pause();
                             output.Print("Paused");
@@ -54,13 +54,31 @@ namespace IngameScript
                         }
                         break;
                     default:
+                        parseTrigger(argument, output);
                         break;
                 }
             }
             #endregion
 
             #region Private Methods
+            private void parseTrigger(string argument, Output output)
+            {
+                char[] delimiterChars = { ' ', ',', '.', ':', '\t' };
+                string[] parts = argument.Split(delimiterChars);
+                if (parts.Length >= 2) {
+                    string tag = parts[0];
+                    string arg = parts[1];
 
+                    IRoutine routine;
+                    if (program.tagDictionary.TryGetValue(tag, out routine)) {
+                        routine.Trigger(arg);
+                        output.Print(routine.Name + " has been passed trigger argument \n    -->" + arg);
+                    }
+
+
+                    
+                }
+            }
             #endregion
         }
     }

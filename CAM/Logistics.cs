@@ -53,6 +53,7 @@ namespace IngameScript
 
             #region properties
             public string Name { get { return "Logistics " + tag; } }
+            public string Tag { get { return tag; } }
             #endregion
 
             #region public Methods
@@ -101,7 +102,10 @@ namespace IngameScript
                 EndUpdate();
             }
 
-            
+            public void Trigger(string argument)
+            {
+
+            }
             #endregion
 
             #region Private Methods
