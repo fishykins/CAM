@@ -26,7 +26,6 @@ namespace IngameScript
             #region Variables
             public const float rotorWaitTime = 2f;
             public const float rotorSpeed = 5f;
-            public char[] delimiterChars = { ' ', '-' };
 
             public const string carouselTag = "carousel";
 
@@ -34,7 +33,7 @@ namespace IngameScript
             public readonly Output output;
             public readonly string tag;
 
-            private enum Direction{None, Clockwise, Counterclockwise}
+            
             private int tick = 0;
             
 
@@ -79,13 +78,13 @@ namespace IngameScript
                 LateUpdate();
             }
 
-            public void Trigger(string argument)
+            public void Trigger(string[] arguments)
             {
                 int i = 0;
-                if (Int32.TryParse(argument, out i)) {
+                if (Int32.TryParse(arguments[0], out i)) {
                     SetRotorPosition(i);
                 } else {
-                    switch (argument.ToLower()) {
+                    switch (arguments[0].ToLower()) {
                         case "carouselinc":
                             SetRotorPosition(carouselIndex + 1);
                             break;
@@ -127,7 +126,7 @@ namespace IngameScript
                 var currentSLot = carouselSlots[index];
                 if (currentSLot == null) return;
 
-                float speed = (GetDirection(index, carouselIndex, 8) == Direction.Clockwise) ? -rotorSpeed : rotorSpeed;
+                float speed = (program.GetDirection(index, carouselIndex, 8) == Direction.Clockwise) ? -rotorSpeed : rotorSpeed;
                 carouselIndex = index;
 
                 vendingRotor.SetValue<float>("UpperLimit", currentSLot.angle);
@@ -143,14 +142,6 @@ namespace IngameScript
                 }
 
                 output.Print("Moving rotor to " + currentSLot.angle + " degrees");
-            }
-
-            private static Direction GetDirection(int a, int b, int limmit)
-            {
-                if (a == b) {
-                    return Direction.None;
-                }
-                return (a - b + limmit) % limmit > (limmit/2) ? Direction.Clockwise : Direction.Counterclockwise;
             }
 
             /// <summary>
@@ -170,7 +161,7 @@ namespace IngameScript
                 foreach (var item in allConnectors) {
                     if (item.CustomName.ToLower().Contains(carouselTag)) {
                         //Find out what index
-                        string[] splits = item.CustomName.ToLower().Split(delimiterChars);
+                        string[] splits = item.CustomName.ToLower().Split(program.delimiterChars);
 
                         if (splits.Length >= 4) {
                             int i;
@@ -194,7 +185,7 @@ namespace IngameScript
                 foreach (var item in tempScreens) {
                     if (item.CustomName.ToLower().Contains(carouselTag)) {
                         //This is a screen for displaying a carousel slot- parse
-                        string[] splits = item.CustomName.ToLower().Split(delimiterChars);
+                        string[] splits = item.CustomName.ToLower().Split(program.delimiterChars);
 
                         if (splits.Length >= 4) {
                             int i;

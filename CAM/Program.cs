@@ -27,8 +27,11 @@ namespace IngameScript
         private const string stressTestTag = "[ST]";
         private const string logisticsTag = "[A]";
         private const string hangarTag = "[H]";
-        
+        private const string factoryTag = "[F]";
+
         //Variables
+        public enum Direction { None, Clockwise, Counterclockwise }
+        public char[] delimiterChars = { ' ', '-', ':', '/' };
         private int routineCount;
         private int tick = 0;
         private int cycle = 0;
@@ -74,6 +77,7 @@ namespace IngameScript
             //Add routines here
             routines.Add(new Logistics(this, logisticsTag));
             routines.Add(new Hangar(this, hangarTag));
+            routines.Add(new Factory(this, factoryTag));
 
             InitRoutines();
 
@@ -89,7 +93,7 @@ namespace IngameScript
         public void Main(string argument, UpdateType updateSource)
         {
             //Catch manual triggers and exclude from cycles
-            if (updateSource == UpdateType.Trigger) {
+            if (updateSource == UpdateType.Trigger || updateSource == UpdateType.Terminal) {
                 manualProgram.Trigger(argument, output);
                 output.Update();
                 return;
@@ -148,6 +152,14 @@ namespace IngameScript
         public void Continue()
         {
             Runtime.UpdateFrequency = frequencyAtPause;
+        }
+
+        public Direction GetDirection(int a, int b, int limmit)
+        {
+            if (a == b) {
+                return Direction.None;
+            }
+            return (a - b + limmit) % limmit > (limmit / 2) ? Direction.Clockwise : Direction.Counterclockwise;
         }
         #endregion
 

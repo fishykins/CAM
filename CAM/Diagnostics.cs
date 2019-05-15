@@ -100,7 +100,7 @@ namespace IngameScript
                 output.Update();
             }
 
-            public void Trigger(string argument)
+            public void Trigger(string[] arguments)
             {
 
             }

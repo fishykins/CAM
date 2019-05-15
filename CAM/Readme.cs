@@ -2,7 +2,6 @@
  *   R e a d m e
  *   -----------
  * 
- *   In this file you can include any instructions or other comments you want to have injected onto the 
- *   top of your final script. You can safely delete this file if you do not want any such comments.
- * 
+ *   This project is designed to be run on Sonny Station and is optimized for low runtimes. 
+ *   All "IRoutines" are sepperated out into different ticks, so the only limiting factor is the physical size of the script.
  */

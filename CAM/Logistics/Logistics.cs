@@ -102,7 +102,7 @@ namespace IngameScript
                 EndUpdate();
             }
 
-            public void Trigger(string argument)
+            public void Trigger(string[] arguments)
             {
 
             }

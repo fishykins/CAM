@@ -67,12 +67,16 @@ namespace IngameScript
                 string[] parts = argument.Split(delimiterChars);
                 if (parts.Length >= 2) {
                     string tag = parts[0];
-                    string arg = parts[1];
+                    string[] args = new string[parts.Length - 1];
+
+                    for (int i = 0; i < parts.Length - 1; i++) {
+                        args[i] = parts[i + 1];
+                    }
 
                     IRoutine routine;
                     if (program.tagDictionary.TryGetValue(tag, out routine)) {
-                        routine.Trigger(arg);
-                        output.Print(routine.Name + " has been passed trigger argument \n    -->" + arg);
+                        routine.Trigger(args);
+                        output.Print(routine.Name + " has been passed trigger argument \n    -->" + args);
                     }
 
 

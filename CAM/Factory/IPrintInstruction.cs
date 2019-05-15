@@ -20,14 +20,9 @@ namespace IngameScript
 {
     partial class Program
     {
-        public interface IRoutine
+        public interface IPrintInstruction
         {
-            string Name { get; }
-            string Tag { get; }
 
-            void Start();
-            void Update();
-            void Trigger(string[] arguments);
         }
     }
 }
