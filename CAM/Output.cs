@@ -37,8 +37,8 @@ namespace IngameScript
             private string displayText = "";
             private List<String> messages = new List<string>();
 
-            private int lastUpdate = -1;
-            private int lastInteraction = 0;
+            private uint lastUpdate = 99;
+            private uint lastInteraction = 0;
             #endregion
 
             #region properties

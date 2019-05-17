@@ -31,15 +31,19 @@ namespace IngameScript
             public readonly string name;
             public List<IMyPistonBase> xPistons = new List<IMyPistonBase>();
             public List<IMyPistonBase> yPistons = new List<IMyPistonBase>();
-            public List<IMyShipWelder> welder = new List<IMyShipWelder>();
+            public List<IMyShipWelder> welders = new List<IMyShipWelder>();
 
             public Vector2 targetPosition = new Vector2(-1f,-1f);
             public Vector2 position;
             private bool isMoving = false;
+            private bool isWelding = false;
+            private uint weldStartTime = 0;
+            private float weldDuration = 0;
             #endregion
 
             #region Properties
-
+            public string Name { get { return name; } }
+            public bool IsWorking { get { return (isMoving || isWelding); } }
             #endregion
 
             #region Public Methods
@@ -49,9 +53,41 @@ namespace IngameScript
                 this.name = name;
             }
 
+            public void Action(string command, double[] values)
+            {
+                if (targetPosition == new Vector2(-1f, -1f))
+                    targetPosition = position;
+
+                switch (command) {
+                    case "set":
+                        SetTargetPosition(values);
+                        break;
+                    case "add":
+                        MoveTargetPosition(values);
+                        break;
+                    case "print":
+                        factory.output.Print(name + ": " + position);
+                        break;
+                    case "weld":
+                        Weld(values);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             public void Update()
             {
                 CalculatePosition();
+
+                if (isWelding) {
+                    if (factory.program.Tick - weldStartTime >= weldDuration) {
+                        isWelding = false;
+                        foreach (var welder in welders) {
+                            welder.Enabled = false;
+                        }
+                    }
+                }
 
                 if ((targetPosition - position).LengthSquared() > accuracyRange && isMoving) {
 
@@ -89,59 +125,54 @@ namespace IngameScript
                 else if (direction == "y") {
                     yPistons.Add(item);
                 }
+
+                CalculatePosition();
             }
 
-            public void ManualPosition(string stringA, string stringB)
-            {
-                if (targetPosition == new Vector2(-1f, -1f))
-                    targetPosition = position;
-
-                Double x;
-                Double y;
-
-                if (Double.TryParse(stringA, out x)) {
-                    //Coorinate
-                    if (Double.TryParse(stringB, out y)) {
-
-                        targetPosition = new Vector2((float)x, (float)y);
-
-                        isMoving = true;
-
-                        factory.output.Print(name + " is moving to " + targetPosition);
-                    }
-                }
-                else {
-                    //Additive
-                    double a;
-                    if (Double.TryParse(stringB, out a)) {
-                        if (stringA.ToLower() == "x") {
-                            targetPosition.X += (float)a;
-                        }
-                        else if (stringA.ToLower() == "y") {
-                            targetPosition.Y += (float)a;
-                        }
-
-                        isMoving = true;
-                    }
-                }
-
-                if (targetPosition.X > xPistons.Count * 10) targetPosition.X = xPistons.Count * 10;
-                if (targetPosition.Y > yPistons.Count * 10) targetPosition.Y = yPistons.Count * 10;
-            }
-
-            public void PrintObjects(Output output)
-            {
-                foreach (var item in xPistons) {
-                    output.Print(name + ": X piston " + item.CustomName);
-                }
-
-                foreach (var item in yPistons) {
-                    output.Print(name + ": Y piston " + item.CustomName);
-                }
-            }
             #endregion
 
             #region Private Methods
+            private void MoveTargetPosition(double[] values)
+            {
+                if (values.Length < 2) return;
+                if (targetPosition == new Vector2(-1f, -1f))
+                    targetPosition = position;
+
+                targetPosition += new Vector2((float)values[0], (float)values[1]);
+                SanitizeVectors();
+                isMoving = true;
+                //factory.output.Print(name + " moving to " + targetPosition);
+            }
+
+            private void SetTargetPosition(double[] values)
+            {
+                if (values.Length < 2) return;
+                targetPosition = new Vector2((float)values[0], (float)values[1]);
+                isMoving = true;
+                SanitizeVectors();
+
+            }
+
+            private void Weld(double[] values)
+            {
+                if (values.Length < 1) return;
+
+                isWelding = true;
+                weldStartTime = factory.program.Tick;
+                weldDuration = (float)values[0] * Program.TicksPerSecond;
+                foreach (var welder in welders) {
+                    welder.Enabled = true;
+                }
+            }
+
+            private void SanitizeVectors()
+            {
+                if (targetPosition.X > xPistons.Count * 10) targetPosition.X = xPistons.Count * 10;
+                if (targetPosition.Y > yPistons.Count * 10) targetPosition.Y = yPistons.Count * 10;
+                if (targetPosition.Y < 0) targetPosition.Y = 0;
+                if (targetPosition.X < 0) targetPosition.X = 0;
+            }
+
             private void CalculatePosition()
             {
                 //Change this- its cancer

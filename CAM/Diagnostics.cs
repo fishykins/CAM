@@ -39,11 +39,6 @@ namespace IngameScript
 
             private double peakLrt = -1f;
             private double averageLrt = 0f;
-            private int lastSpike = -1;
-
-            private int spikeCount = 0;
-            private int spikeSum = 0;
-            private float spikeAverage = 0;
 
             private string peakLrtString = "";
             #endregion
@@ -77,13 +72,7 @@ namespace IngameScript
                 //Throttle if average goes over
                 if (averageLrt > maxRuntime) {
 
-                    int timeSinceLast = program.Tick - lastSpike;
-                    lastSpike = program.Tick;
-                    spikeCount++;
-                    spikeSum += timeSinceLast;
-                    spikeAverage = spikeSum / spikeCount;
-
-                    output.PrintWarning("Max average runtime was peaked: " + averageLrt + "ms\n       --> " + timeSinceLast + " ticks since last spike");
+                    output.PrintWarning("Max average runtime was peaked: " + averageLrt + "ms");
                     program.Pause();
                     averageLrt = 0f;
                 } else {
@@ -96,7 +85,7 @@ namespace IngameScript
                     peakLrtString = "Peak LRT: " + peakLrt + "ms";
                 }
 
-                output.SetHeader(headerTitle + "\n" + "Average Runtime: " + averageLrt + "\n" + peakLrtString + "\nAverage spike width: " + spikeAverage);
+                output.SetHeader(headerTitle + "\n" + "Average Runtime: " + averageLrt);
                 output.Update();
             }
 

@@ -28,24 +28,22 @@ namespace IngameScript
             #region Variables
             public const string leftArmTag = "l";
             public const string rightArmTag = "r";
-            public const string kebabTag = "k";
+            public const string rotorTag = "k";
 
             public readonly Program program;
             public readonly Output output;
             public readonly string tag;
 
+            public Dictionary<string, IPrinterPart> printerDictionary = new Dictionary<string, IPrinterPart>();
+            public List<PrintingJob> printingJobs = new List<PrintingJob>();
+            public int printingJobIndex = 0;
+            public PrintingJob job = null;
+            public bool isPrinting = true;
+
             private List<IMyProjector> allProjectors = new List<IMyProjector>();
             private List<IMyPistonBase> allPistons = new List<IMyPistonBase>();
             private List<IMyMotorStator> allRotors = new List<IMyMotorStator>();
-            private IMyMotorStator centralRotor;
-
-            private Dictionary<string, IPrinterPart> printerDictionary = new Dictionary<string, IPrinterPart>();
-
-            private WelderArm leftArm;
-            private WelderArm rightArm;
-            private bool isPrinting = true;
-            private float targetRotorPos = 0f;
-            
+            private List<IMyShipWelder> allWelders = new List<IMyShipWelder>();
             #endregion
 
             #region Properties
@@ -63,109 +61,138 @@ namespace IngameScript
 
             public void Start()
             {
-                leftArm = new WelderArm(this, "Left Arm");
-                rightArm = new WelderArm(this, "Right Arm");
+                WelderArm leftArm = new WelderArm(this, "Left Arm");
+                WelderArm rightArm = new WelderArm(this, "Right Arm");
+                ProjectorKebab rotor = new ProjectorKebab(this, "Rotor");
+
+                printerDictionary.Add(leftArmTag, leftArm);
+                printerDictionary.Add(rightArmTag, rightArm);
+                printerDictionary.Add(rotorTag, rotor);
 
                 program.GridTerminalSystem.GetBlocksOfType<IMyProjector>(allProjectors, block => block.CustomName.Contains(tag));
                 program.GridTerminalSystem.GetBlocksOfType<IMyPistonBase>(allPistons, block => block.CustomName.Contains(tag));
                 program.GridTerminalSystem.GetBlocksOfType<IMyMotorStator>(allRotors, block => block.CustomName.Contains(tag));
+                program.GridTerminalSystem.GetBlocksOfType<IMyShipWelder>(allWelders, block => block.CustomName.Contains(tag));
 
-                if (allRotors.Count > 0) 
-                    centralRotor = allRotors[0];
+                char[] tagDelimiter = { ':'};
+
+                if (allRotors.Count > 0)
+                    rotor.rotor = allRotors[0];
 
                 foreach (var item in allPistons) {
-                    //output.Print(item.CustomName);
-
                     string[] splits = item.CustomName.ToLower().Split(program.delimiterChars);
 
                     if (splits.Length > 4) {
                         string side = splits[2].ToLower();
                         string direction = splits[3].ToLower();
 
-                        if (side == "r") {
+                        if (side == rightArmTag) {
                             rightArm.AddPiston(item, direction);
-                        } else if (side == "l") {
+                        } else if (side == leftArmTag) {
                             leftArm.AddPiston(item, direction);
                         }
                     }
                 }
 
-                foreach (var projector in allProjectors) {
-                    output.Print(projector.CustomName + " blocks: ");
+                foreach (var item in allWelders) {
+                    string[] splits = item.CustomName.ToLower().Split(tagDelimiter);
 
-                    int i = 0;
-                    /*
-                    foreach (var item in projector.RemainingBlocksPerType) {
+                    if (splits.Length >= 2) {
+                        string itemTag = splits[1].ToLower();
+                        IPrinterPart part;
+                        if (printerDictionary.TryGetValue(itemTag, out part)) {
+                            WelderArm arm = part as WelderArm;
+                            if (arm != null) {
+                                arm.welders.Add(item);
+                                output.Print("Added welder " + item.CustomName + " to " + arm.Name);
+                            }
+                        }
 
-                        var type = item.Key.GetType();
-                        var count = item.Value;
-                        output.Print("-- " + i + ": " + type);
-                        i++;
-                    }*/
+                    }
                 }
 
-                leftArm.PrintObjects(output);
-                rightArm.PrintObjects(output);
+                foreach (var projector in allProjectors) {
+                    printingJobs.Add(new PrintingJob(this, projector));
+                }
 
                 output.SetHeader(Name);
             }
 
             public void Update()
             {
-                StartUpdate();
-
-                float rotorAngle = (centralRotor.Angle * 57.2958f);
-
                 if (isPrinting) {
-                    leftArm.Update();
-                    rightArm.Update();
+                    if (job != null)
+                        job.Update();
 
-                    float range = (targetRotorPos - rotorAngle);
-                    centralRotor.TargetVelocityRPM = range / 3f;
+                    foreach (var item in printerDictionary) {
+                        item.Value.Update();
+                    }
                 }
 
-                string header = Name + "\nLeft: " + leftArm.position + ", Right: " + rightArm.position + "\nRotor: " + rotorAngle + "/" + targetRotorPos;
-
-                output.SetHeader(header);
-
-                LateUpdate();
+                output.Update();
             }
 
             public void Trigger(string[] arguments)
             {
-                switch (arguments[0].ToLower()) {
-                    case "l":
-                        if (arguments.Length >= 3)
-                            leftArm.ManualPosition(arguments[1], arguments[2]);
-                        break;
-                    case "r":
-                        if (arguments.Length >= 3)
-                            rightArm.ManualPosition(arguments[1], arguments[2]);
-                        break;
-                    case "r+":
-                        targetRotorPos += 90;
-                        break;
-                    case "r-":
-                        targetRotorPos -= 90;
-                        break;
-                    default:
-                        break;
+                if (arguments.Length > 0) {
+                    switch (arguments[0].ToLower()) {
+                        case "startjob":
+                            StartJob();
+                            break;
+                        default:
+                            PrintingPartTrigger(arguments);
+                            break;
+                    }
                 }
-
-                if (targetRotorPos > 360) targetRotorPos -= 360;
-                if (targetRotorPos < 0) targetRotorPos += 360;
             }
             #endregion
 
             #region Private Methods
-            private void StartUpdate()
+            private void StartJob()
             {
-
+                if (job != null) {
+                    job.Abort();
+                    job = null;
+                    isPrinting = false;
+                } else {
+                    if (!(printingJobIndex < printingJobs.Count)) return;
+                    job = printingJobs[printingJobIndex];
+                    job.Start();
+                    isPrinting = true;
+                }
             }
 
-            private void LateUpdate()
+            //Called manually by player. Should not be used by script-side commands as we can avoid all the parsing
+            private void PrintingPartTrigger(string[] arguments)
             {
-                output.Update();
+                string printerPart = arguments[0].ToLower();
+                string command = arguments[1];
+
+                double[] values = new double[0];
+                bool canCall = true;
+
+                if (arguments.Length > 2) {
+                    //Parse all subsequent values
+                    values = new double[arguments.Length - 2];
+
+                    for (int i = 0; i < arguments.Length - 2; i++) {
+                        double result;
+                        if (double.TryParse(arguments[i + 2], out result)) {
+                            values[i] = result;
+                        }
+                        else {
+                            canCall = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (canCall) {
+                    IPrinterPart part;
+                    if (printerDictionary.TryGetValue(printerPart, out part)) {
+                        part.Action(command, values);
+                    }
+                }
             }
             #endregion
         }

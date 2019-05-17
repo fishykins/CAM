@@ -22,7 +22,11 @@ namespace IngameScript
     {
         public interface IPrinterPart
         {
-            //void Action(string command, Vector4 vector);
+            string Name { get; }
+            bool IsWorking { get; }
+            void Action(string command, double[] values);
+            void Update();
+            
         }
     }
 }

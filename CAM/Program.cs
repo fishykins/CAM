@@ -22,18 +22,20 @@ namespace IngameScript
     {
         #region Variables
         //Settings
+        public const int TicksPerSecond = 60;
         private const string programTag = "[M]";
         private const string diagnosticTag = "[D]";
         private const string stressTestTag = "[ST]";
         private const string logisticsTag = "[A]";
         private const string hangarTag = "[H]";
         private const string factoryTag = "[F]";
+        
 
         //Variables
         public enum Direction { None, Clockwise, Counterclockwise }
         public char[] delimiterChars = { ' ', '-', ':', '/' };
         private int routineCount;
-        private int tick = 0;
+        private uint tick = 0;
         private int cycle = 0;
         private int routineIndex = 0;
 
@@ -56,7 +58,7 @@ namespace IngameScript
         public int Cycle { get { return cycle; } }
         public int RoutineIndex { get { return routineIndex; } }
         public int RoutineCount { get { return routineCount; } }
-        public int Tick { get { return tick; } }
+        public uint Tick { get { return tick; } }
         public GridAnalyser Analyser { get { return gridAnalyser; } }
         #endregion
 

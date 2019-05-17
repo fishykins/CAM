@@ -96,6 +96,7 @@
     <Analyzer Include="c:\users\fishy\appdata\local\microsoft\visualstudio\15.0_9486db90\extensions\icrbray2.4zn\Analyzers\MDKAnalyzer.dll" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Factory\Instruction.cs" />
     <Compile Include="Factory\IPrinterPart.cs" />
     <Compile Include="Factory\ProjectorKebab.cs" />
     <Compile Include="Hangar\CarouselSlot.cs" />
