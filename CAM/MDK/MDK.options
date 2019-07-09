@@ -5,7 +5,7 @@
   <gamebinpath enabled="no">S:\steam\SteamApps\common\SpaceEngineers\Bin64</gamebinpath>
   <installpath>c:\users\fishy\appdata\local\microsoft\visualstudio\15.0_9486db90\extensions\icrbray2.4zn</installpath>
   <outputpath>C:\Users\Fishy\AppData\Roaming\SpaceEngineers\IngameScripts\local</outputpath>
-  <trimtypes>no</trimtypes>
+  <trimtypes>yes</trimtypes>
   <minify>no</minify>
   <ignore>
     <folder>mdk</folder>

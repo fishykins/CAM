@@ -29,6 +29,7 @@ namespace IngameScript
         private const string logisticsTag = "[A]";
         private const string hangarTag = "[H]";
         private const string factoryTag = "[F]";
+        private const string airlockTag = "[AL]";
         
 
         //Variables
@@ -80,6 +81,7 @@ namespace IngameScript
             routines.Add(new Logistics(this, logisticsTag));
             routines.Add(new Hangar(this, hangarTag));
             routines.Add(new Factory(this, factoryTag));
+            //routines.Add(new AirlockManager(this, airlockTag));
 
             InitRoutines();
 

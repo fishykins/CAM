@@ -29,10 +29,12 @@ namespace IngameScript
             public const string leftArmTag = "l";
             public const string rightArmTag = "r";
             public const string rotorTag = "k";
+            public const float speedMultiplier = 0.1f;
 
             public readonly Program program;
             public readonly Output output;
             public readonly string tag;
+            public readonly float timeMultiplier;
 
             public Dictionary<string, IPrinterPart> printerDictionary = new Dictionary<string, IPrinterPart>();
             public List<PrintingJob> printingJobs = new List<PrintingJob>();
@@ -56,6 +58,7 @@ namespace IngameScript
             {
                 this.program = program;
                 this.tag = tag;
+                this.timeMultiplier = (float)Program.TicksPerSecond / speedMultiplier;
                 output = new Output(program, tag, false);
             }
 

@@ -23,7 +23,7 @@ namespace IngameScript
         public class PrintingJob
         {
             #region Variables
-            public const float speedMultiplier = 0.3f; 
+            
             public float timePerMove = 1f;
             public string name;
 
@@ -34,7 +34,6 @@ namespace IngameScript
             private bool waiting = false;
             private int progress = 0;
             private uint lastMove = 0;
-            private float timeModifier;
             #endregion
 
             #region Public Methods
@@ -43,8 +42,6 @@ namespace IngameScript
                 this.factory = factory;
                 this.projector = projector;
                 this.name = projector.CustomName;
-
-                timeModifier = Program.TicksPerSecond / speedMultiplier;
 
                 if (projector != null) {
                     ParsePrintOrder(projector.CustomData);
@@ -73,15 +70,16 @@ namespace IngameScript
                     lastMove = tick;
                     waiting = currentInstruction.part.IsWorking;
                 } else {
-                    if (tick - lastMove > timePerMove * timeModifier) {
+                    if (tick - lastMove > timePerMove) {
                         if (instructions.Count > progress) {
                             currentInstruction = instructions[progress];
-                            factory.output.Print(tick + ": triggering action " + progress);
                             currentInstruction.Trigger();
-                            timePerMove = currentInstruction.duration;
+                            timePerMove = currentInstruction.duration * Program.TicksPerSecond;// * factory.timeMultiplier;
                             waiting = currentInstruction.wait;
                             lastMove = tick;
                             progress++;
+
+                            factory.output.Print(tick + ": triggering action " + progress + ": " + currentInstruction);
                         }
                         else {
                             //Done!

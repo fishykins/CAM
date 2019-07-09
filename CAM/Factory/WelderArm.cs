@@ -159,7 +159,7 @@ namespace IngameScript
 
                 isWelding = true;
                 weldStartTime = factory.program.Tick;
-                weldDuration = (float)values[0] * Program.TicksPerSecond;
+                weldDuration = (float)values[0] * factory.timeMultiplier; //Use factory time for longer weld times
                 foreach (var welder in welders) {
                     welder.Enabled = true;
                 }

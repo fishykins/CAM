@@ -76,7 +76,8 @@ namespace IngameScript
                     IRoutine routine;
                     if (program.tagDictionary.TryGetValue(tag, out routine)) {
                         routine.Trigger(args);
-                        output.Print(routine.Name + " has been passed trigger argument \n    -->" + args);
+                        if (args.Length > 0)
+                            output.Print(routine.Name + " has been passed trigger argument \n    -->" + args[0] + "...");
                     }
 
 

@@ -23,32 +23,57 @@ namespace IngameScript
         public struct Instruction
         {
             public IPrinterPart part;
-            public string commnad;
+            public string command;
             public double[] values;
             public bool wait;
             public float duration;
 
+            private string toStringValue;
+
             public Instruction(IPrinterPart part, string commnad, double[] values, float duration = .1f, bool wait = true)
             {
                 this.part = part;
-                this.commnad = commnad;
+                this.command = commnad;
                 this.values = values;
                 this.wait = wait;
                 this.duration = duration;
+                toStringValue = "";
+                SetString();
             }
 
             public Instruction(IPrinterPart part, string command, float duration = .1f, bool wait = true)
             {
                 this.part = part;
-                this.commnad = command;
+                this.command = command;
                 this.values = new double[0];
                 this.wait = wait;
                 this.duration = duration;
+                toStringValue = "";
+                SetString();
             }
 
             public void Trigger()
             {
-                part.Action(commnad, values);
+                part.Action(command, values);
+            }
+
+            public override string ToString()
+            {
+                return toStringValue;
+            }
+
+            private void SetString()
+            {
+                toStringValue = part.Name + ": " + command + " [";
+                for (int i = 0; i < values.Length; i++) {
+                    toStringValue += values[i].ToString();
+                    if (i + 1 < values.Length)
+                        toStringValue += ",";
+                }
+                toStringValue += "] (" + duration + ")";
+
+                if (!wait)
+                    toStringValue += " NOWAIT";
             }
         }
     }
